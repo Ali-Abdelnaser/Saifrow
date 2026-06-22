@@ -8,6 +8,10 @@ import ServicesPage from '@/pages/public/services/Services';
 import ServiceDetailsPage from '@/pages/public/services/ServiceDetails';
 import CheckoutPage from '@/pages/public/Checkout';
 import ProfilePage from '@/pages/public/Profile';
+import FaqPage from '@/pages/public/Faq';
+import ContactPage from '@/pages/public/Contact';
+import TermsPage from '@/pages/public/Terms';
+import PrivacyPage from '@/pages/public/Privacy';
 
 // Admin Pages
 import { AdminLayout } from '@/components/layout/AdminLayout';
@@ -52,10 +56,10 @@ export const router = createBrowserRouter([
         ),
       },
       // Static
-      { path: 'faq', element: <div className="container py-12 text-right">صفحة الأسئلة الشائعة</div> },
-      { path: 'contact', element: <div className="container py-12 text-right">صفحة اتصل بنا</div> },
-      { path: 'terms', element: <div className="container py-12 text-right">شروط الخدمة</div> },
-      { path: 'privacy', element: <div className="container py-12 text-right">سياسة الخصوصية</div> },
+      { path: 'faq', element: <FaqPage /> },
+      { path: 'contact', element: <ContactPage /> },
+      { path: 'terms', element: <TermsPage /> },
+      { path: 'privacy', element: <PrivacyPage /> },
     ],
   },
   {
