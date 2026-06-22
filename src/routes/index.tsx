@@ -29,6 +29,7 @@ import AdminFaqs from '@/pages/admin/Faqs';
 import AdminSettings from '@/pages/admin/Settings';
 import AdminTeam from '@/pages/admin/Team';
 import AdminLogs from '@/pages/admin/Logs';
+import AdminContacts from '@/pages/admin/Contacts';
 
 export const router = createBrowserRouter([
   {
@@ -85,6 +86,7 @@ export const router = createBrowserRouter([
       { path: 'settings', element: <AdminSettings /> },
       { path: 'team', element: <AdminTeam /> },
       { path: 'logs', element: <AdminLogs /> },
+      { path: 'contacts', element: <AdminContacts /> },
     ],
   },
 ]);

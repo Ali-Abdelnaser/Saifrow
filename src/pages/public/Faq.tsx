@@ -3,8 +3,15 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { HelpCircle, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { useSEO } from '@/hooks/useSEO';
 
 export default function FaqPage() {
+  useSEO({
+    title: 'الأسئلة الشائعة',
+    description: 'اعثر على إجابات سريعة للأسئلة الشائعة حول خدماتنا، طرق الدفع والتفعيل، وكيفية استلام حساباتك الرقمية من متجر Saifrow Store.',
+    keywords: 'saifrow store, الأسئلة الشائعة, استفسارات, دعم العملاء, كيفية الدفع, طريقة التفعيل'
+  });
+
   const [search, setSearch] = useState('');
 
   const { data: faqs, isLoading } = useQuery({

@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { Badge } from '@/components/ui/badge';
 import { PlanCard } from '@/components/public/PlanCard';
 import { AlertCircle, CheckCircle2, Star } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
 
 export default function ServiceDetailsPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -27,6 +28,12 @@ export default function ServiceDetailsPage() {
       return data;
     },
     enabled: !!slug,
+  });
+
+  useSEO({
+    title: service ? `${service.name} | باقات واشتراكات` : 'تحميل الخدمة...',
+    description: service?.short_description || service?.full_description || 'تصفح باقات واشتراكات الخدمة الرقمية بأفضل الأسعار على متجر Saifrow Store.',
+    keywords: service ? `saifrow store, ${service.name}, اشتراك ${service.name}, باقة ${service.name}` : 'saifrow store, اشتراكات رقمية'
   });
 
   if (isLoading) {
@@ -66,7 +73,7 @@ export default function ServiceDetailsPage() {
         </div>
       )}
 
-      <div className="container relative -mt-32 z-10 pb-20">
+      <div className="container relative mt-10 z-10 pb-20">
         <div className="bg-card rounded-2xl shadow-sm border p-6 md:p-8 mb-12">
           <div className="flex flex-col md:flex-row gap-6 md:items-start">
             {service.logo_url && (

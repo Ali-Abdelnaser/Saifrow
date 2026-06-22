@@ -7,8 +7,15 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Mail, Phone, MessageSquare, Send } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
 
 export default function ContactPage() {
+  useSEO({
+    title: 'اتصل بنا',
+    description: 'تواصل مع فريق دعم متجر Saifrow Store. نحن هنا للإجابة على استفساراتك ومساعدتك في تفعيل وحل أي مشكلة بخصوص اشتراكاتك الرقمية.',
+    keywords: 'saifrow store, اتصل بنا, الدعم الفني, تواصل معنا, خدمة العملاء'
+  });
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');
@@ -22,7 +29,7 @@ export default function ContactPage() {
       if (error) throw error;
       
       const flatSettings = {
-        contact_email: 'support@saifrow.store',
+        contact_email: 'saifrowstore@gmail.com',
         contact_phone: '',
         whatsapp_number: '',
       };
@@ -39,7 +46,7 @@ export default function ContactPage() {
     }
   });
 
-  const contactEmail = settings?.contact_email || 'support@saifrow.store';
+  const contactEmail = settings?.contact_email || 'saifrowstore@gmail.com';
   const whatsappNumber = settings?.whatsapp_number;
   const contactPhone = settings?.contact_phone;
 
@@ -51,15 +58,30 @@ export default function ContactPage() {
     }
 
     setIsSubmitting(true);
-    // Simulate sending message to support email/admin
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .insert({
+          name,
+          email,
+          subject: subject || null,
+          message,
+          is_read: false
+        });
+
+      if (error) throw error;
+
       toast.success('تم إرسال رسالتك بنجاح! سنقوم بالرد عليك قريباً.');
       setName('');
       setEmail('');
       setSubject('');
       setMessage('');
-    }, 1200);
+    } catch (err: any) {
+      console.error('Error submitting contact form:', err);
+      toast.error('حدث خطأ أثناء إرسال الرسالة، يرجى المحاولة مرة أخرى.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

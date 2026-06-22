@@ -60,8 +60,8 @@ export function PublicHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex gap-6 md:gap-10">
+      <div className="container relative flex h-16 items-center justify-between">
+        <div className="flex items-center">
           <Link to="/" className="flex items-center space-x-2 rtl:space-x-reverse">
             {settings?.logo_url ? (
               <img src={settings.logo_url} alt={siteName} className="h-8 object-contain" />
@@ -69,14 +69,15 @@ export function PublicHeader() {
               <span className="font-bold inline-block text-xl">{siteName}</span>
             )}
           </Link>
-          <nav className="hidden md:flex gap-6">
-            {navLinks.map((item) => (
-              <Link key={item.to} to={item.to} className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground">
-                {item.label}
-              </Link>
-            ))}
-          </nav>
         </div>
+
+        <nav className="hidden md:flex items-center justify-center gap-6 absolute left-1/2 -translate-x-1/2">
+          {navLinks.map((item) => (
+            <Link key={item.to} to={item.to} className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200">
+              {item.label}
+            </Link>
+          ))}
+        </nav>
 
         <div className="flex items-center gap-2">
           {isLoading ? (

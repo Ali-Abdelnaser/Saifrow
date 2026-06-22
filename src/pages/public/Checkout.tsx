@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
@@ -32,6 +32,51 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<'details' | 'payment' | 'success'>('details');
   const [createdOrderId, setCreatedOrderId] = useState<string>('');
   const [createdOrderNumber, setCreatedOrderNumber] = useState<string>('');
+
+  const submittingOrderRef = useRef(false);
+  const submittingProofRef = useRef(false);
+
+  // Fetch existing pending order for this plan and user to prevent duplicates
+  const { data: existingOrder } = useQuery({
+    queryKey: ['pending_order', planId, user?.id],
+    queryFn: async () => {
+      if (!user?.id || !planId) return null;
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('plan_id', planId)
+        .eq('status', 'pending_payment')
+        .limit(1)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id && !!planId,
+  });
+
+  // Prefill details and advance to payment if user already has a pending order
+  useEffect(() => {
+    if (existingOrder) {
+      setFullName(existingOrder.customer_name || '');
+      setEmail(existingOrder.customer_email || '');
+      setPhone(existingOrder.customer_phone || '');
+      setNote(existingOrder.customer_note || '');
+      setCreatedOrderId(existingOrder.id);
+      setCreatedOrderNumber(existingOrder.order_number);
+      setStep('payment');
+    }
+  }, [existingOrder]);
+
+  // Sync profile details once they load (if no existing order)
+  useEffect(() => {
+    if (profile && !existingOrder) {
+      if (!fullName) setFullName(profile.full_name || '');
+      if (!email) setEmail(profile.email || '');
+      if (!phone) setPhone(profile.phone || '');
+    }
+  }, [profile, existingOrder]);
 
   // Fetch plan and service details
   const { data: plan, isLoading: isLoadingPlan } = useQuery({
@@ -143,6 +188,16 @@ export default function CheckoutPage() {
     }
   });
 
+  const handleCreateOrder = () => {
+    if (submittingOrderRef.current) return;
+    submittingOrderRef.current = true;
+    createOrderMutation.mutate(undefined, {
+      onSettled: () => {
+        submittingOrderRef.current = false;
+      }
+    });
+  };
+
   // Submit Payment Proof Mutation
   const submitProofMutation = useMutation({
     mutationFn: async () => {
@@ -167,6 +222,16 @@ export default function CheckoutPage() {
       toast.error(err.message || 'خطأ أثناء إرسال إثبات الدفع');
     }
   });
+
+  const handleSubmitProof = () => {
+    if (submittingProofRef.current) return;
+    submittingProofRef.current = true;
+    submitProofMutation.mutate(undefined, {
+      onSettled: () => {
+        submittingProofRef.current = false;
+      }
+    });
+  };
 
   if (isLoadingPlan) {
     return (
@@ -305,7 +370,7 @@ export default function CheckoutPage() {
 
                 <div className="pt-4">
                   <Button 
-                    onClick={() => createOrderMutation.mutate()} 
+                    onClick={handleCreateOrder} 
                     className="w-full text-md h-12"
                     disabled={createOrderMutation.isPending || !paymentMethodId || !fullName || !email}
                   >
@@ -398,7 +463,7 @@ export default function CheckoutPage() {
                     تعديل البيانات
                   </Button>
                   <Button 
-                    onClick={() => submitProofMutation.mutate()} 
+                    onClick={handleSubmitProof} 
                     className="flex-1 text-md h-12"
                     disabled={submitProofMutation.isPending || !proofUrl}
                   >

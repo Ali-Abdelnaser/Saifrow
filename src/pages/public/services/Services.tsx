@@ -14,8 +14,15 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
 
 export default function ServicesPage() {
+  useSEO({
+    title: 'الخدمات والاشتراكات',
+    description: 'تصفح خدمات واشتراكات متجر Saifrow Store. اشتراكات بث ترفيهي، حسابات تواصل اجتماعي، برامج أصلية، ومفاتيح تفعيل بأفضل الأسعار وعروض حصرية.',
+    keywords: 'saifrow store, خدمات رقمية, اشتراكات, باقات, تفعيل برامج, حسابات ترفيهية'
+  });
+
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
   

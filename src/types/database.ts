@@ -314,6 +314,15 @@ export interface Database {
         created_at: string;
         updated_at: string;
       }>;
+      contact_messages: TableDefinition<{
+        id: string;
+        name: string;
+        email: string;
+        subject: string | null;
+        message: string;
+        is_read: boolean;
+        created_at: string;
+      }>;
       homepage_sections: TableDefinition<{
         id: string;
         hero_title: string | null;

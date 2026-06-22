@@ -176,8 +176,19 @@ export default function ProfilePage() {
                   {orders.map((order) => {
                     const plan = order.service_plans;
                     const service = order.services;
-                    const proofs = order.payment_proofs || [];
-                    const delivery = (order.delivery_details || []).filter((detail: any) => detail.visible_in_profile === true);
+                    const paymentProofs = Array.isArray(order.payment_proofs)
+                      ? order.payment_proofs
+                      : order.payment_proofs
+                        ? [order.payment_proofs]
+                        : [];
+                    const proofs = paymentProofs;
+
+                    const deliveryDetails = Array.isArray(order.delivery_details)
+                      ? order.delivery_details
+                      : order.delivery_details
+                        ? [order.delivery_details]
+                        : [];
+                    const delivery = deliveryDetails.filter((detail: any) => detail.visible_in_profile === true);
 
                     return (
                       <div 

@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, ShoppingCart, Layers, Tags, CreditCard, 
-  Settings, Users, ShieldAlert, LogOut, CheckCircle, Percent, MessageSquare, HelpCircle, Menu
+  Settings, Users, ShieldAlert, LogOut, CheckCircle, Percent, MessageSquare, HelpCircle, Menu, Mail
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import {
@@ -35,6 +35,7 @@ export function AdminLayout() {
     { label: 'التصنيفات', path: '/admin/categories', icon: Tags, roles: ['super_admin', 'content_manager'] },
     { label: 'طرق الدفع', path: '/admin/payment-methods', icon: CreditCard, roles: ['super_admin', 'content_manager'] },
     { label: 'الكوبونات', path: '/admin/coupons', icon: Percent, roles: ['super_admin', 'content_manager'] },
+    { label: 'رسائل التواصل', path: '/admin/contacts', icon: Mail, roles: ['super_admin', 'orders_manager', 'content_manager'] },
     { label: 'التقييمات', path: '/admin/reviews', icon: MessageSquare, roles: ['super_admin', 'content_manager'] },
     { label: 'الأسئلة الشائعة', path: '/admin/faqs', icon: HelpCircle, roles: ['super_admin', 'content_manager'] },
     { label: 'الإعدادات', path: '/admin/settings', icon: Settings, roles: ['super_admin', 'content_manager'] },

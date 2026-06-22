@@ -3,8 +3,15 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Star, HelpCircle, ArrowLeft, Check, Sparkles, Shield, Headset } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
 
 export default function HomePage() {
+  useSEO({
+    title: 'الرئيسية | متجر الاشتراكات الرقمية',
+    description: 'متجر Saifrow Store - وجهتك الأولى لشراء الاشتراكات الرقمية، خدمات البث الترفيهي، الحسابات التعليمية، وتفعيل البرامج الأصلية بأفضل الأسعار.',
+    keywords: 'saifrow store, الرئيسية, متجر اشتراكات, نتفلكس, يوتيوب بريميوم, سبوتيفاي'
+  });
+
   // Fetch site settings
   const { data: settings } = useQuery({
     queryKey: ['site_settings'],

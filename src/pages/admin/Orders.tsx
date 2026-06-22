@@ -337,7 +337,7 @@ export default function AdminOrders() {
                                     {/* Approve / Deliver Dialog */}
                                     <Dialog open={isApproveOpen} onOpenChange={setIsApproveOpen}>
                                       <DialogTrigger asChild>
-                                        <Button className="flex-1 bg-success hover:bg-success/90">
+                                        <Button className="flex-1 bg-emerald-600 text-white hover:bg-emerald-700">
                                           <Check className="w-4 h-4 ml-1.5" />
                                           قبول الدفع وتوصيل الطلب
                                         </Button>
