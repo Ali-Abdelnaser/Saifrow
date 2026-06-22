@@ -161,6 +161,8 @@ export default function AdminPaymentMethods() {
                     <SelectItem value="vodafone_cash">محفظة إلكترونية (فودافون كاش)</SelectItem>
                     <SelectItem value="instapay">إنستاباي (InstaPay)</SelectItem>
                     <SelectItem value="bank_transfer">تحويل بنكي</SelectItem>
+                    <SelectItem value="binance">بايننس باي (Binance Pay)</SelectItem>
+                    <SelectItem value="credit_card">بطاقة ائتمان / بطاقة بنكية</SelectItem>
                     <SelectItem value="other">أخرى</SelectItem>
                   </SelectContent>
                 </Select>
@@ -171,23 +173,23 @@ export default function AdminPaymentMethods() {
                 <Input id="accountName" value={accountName} onChange={(e) => setAccountName(e.target.value)} />
               </div>
 
-              {(type === 'vodafone_cash' || type === 'other') && (
+               {(type === 'vodafone_cash' || type === 'other') && (
                 <div className="space-y-2">
                   <Label htmlFor="phone">رقم الهاتف / رقم المحفظة</Label>
                   <Input id="phone" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} dir="ltr" className="text-left rtl:text-right" />
                 </div>
               )}
 
-              {type === 'instapay' && (
+              {(type === 'instapay' || type === 'binance') && (
                 <div className="space-y-2">
-                  <Label htmlFor="instapay">عنوان InstaPay IPN</Label>
-                  <Input id="instapay" placeholder="username@instapay" value={instapayHandle} onChange={(e) => setInstapayHandle(e.target.value)} dir="ltr" className="text-left rtl:text-right" />
+                  <Label htmlFor="instapay">{type === 'binance' ? 'معرف بايننس (Binance Pay ID / Wallet Address)' : 'عنوان InstaPay IPN'}</Label>
+                  <Input id="instapay" placeholder={type === 'binance' ? 'Binance ID' : 'username@instapay'} value={instapayHandle} onChange={(e) => setInstapayHandle(e.target.value)} dir="ltr" className="text-left rtl:text-right" />
                 </div>
               )}
 
-              {type === 'bank_transfer' && (
+              {(type === 'bank_transfer' || type === 'credit_card') && (
                 <div className="space-y-2">
-                  <Label htmlFor="bank">رقم الحساب البنكي / الآيبان IBAN</Label>
+                  <Label htmlFor="bank">{type === 'credit_card' ? 'رقم البطاقة / الحساب البنكي' : 'رقم الحساب البنكي / الآيبان IBAN'}</Label>
                   <Input id="bank" value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} dir="ltr" className="text-left rtl:text-right" />
                 </div>
               )}
@@ -236,7 +238,13 @@ export default function AdminPaymentMethods() {
                 {methods.map((method) => (
                   <TableRow key={method.id}>
                     <TableCell className="font-bold">{method.method_name}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{method.type}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {method.type === 'vodafone_cash' ? 'فودافون كاش' :
+                       method.type === 'instapay' ? 'إنستاباي' :
+                       method.type === 'bank_transfer' ? 'تحويل بنكي' :
+                       method.type === 'binance' ? 'بايننس باي' :
+                       method.type === 'credit_card' ? 'بطاقة ائتمانية' : 'أخرى'}
+                    </TableCell>
                     <TableCell className="font-mono text-sm">
                       {method.phone_number || method.instapay_handle || method.bank_account || '-'}
                     </TableCell>

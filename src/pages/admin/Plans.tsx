@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Plus, Edit, Trash, Loader2 } from 'lucide-react';
+import type { DeliveryType } from '@/types/database';
 
 export default function AdminPlans() {
   const queryClient = useQueryClient();
@@ -31,7 +32,7 @@ export default function AdminPlans() {
   const [lowStockAlert, setLowStockAlert] = useState(2);
   const [features, setFeatures] = useState('');
   const [notes, setNotes] = useState('');
-  const [deliveryType, setDeliveryType] = useState<string>('email_password');
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>('email_password');
   const [isActive, setIsActive] = useState(true);
   const [isPopular, setIsPopular] = useState(false);
 
@@ -244,7 +245,7 @@ export default function AdminPlans() {
 
               <div className="space-y-2">
                 <Label>طريقة التسليم الافتراضية</Label>
-                <Select value={deliveryType} onValueChange={setDeliveryType}>
+                <Select value={deliveryType} onValueChange={(value) => setDeliveryType(value as DeliveryType)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

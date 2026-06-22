@@ -1,10 +1,17 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { z } from 'zod';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+
+const registerSchema = z.object({
+  fullName: z.string().min(2, 'يرجى إدخال الاسم الكامل'),
+  email: z.string().email('يرجى إدخال بريد إلكتروني صحيح'),
+  password: z.string().min(6, 'كلمة المرور يجب ألا تقل عن 6 أحرف'),
+});
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -15,22 +22,30 @@ export default function RegisterPage() {
 
   const handleEmailRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validation = registerSchema.safeParse({ fullName, email, password });
+
+    if (!validation.success) {
+      toast.error(validation.error.issues[0]?.message || 'يرجى مراجعة بيانات التسجيل');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+      const { error } = await supabase.auth.signUp({
+        email: validation.data.email,
+        password: validation.data.password,
         options: {
           data: {
-            full_name: fullName,
+            full_name: validation.data.fullName,
           },
         },
       });
       if (error) throw error;
       toast.success('تم إنشاء الحساب بنجاح. يرجى تسجيل الدخول.');
       navigate('/login');
-    } catch (error: any) {
-      toast.error(error.message || 'فشل إنشاء الحساب');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'فشل إنشاء الحساب';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -45,8 +60,9 @@ export default function RegisterPage() {
         },
       });
       if (error) throw error;
-    } catch (error: any) {
-      toast.error(error.message || 'فشل تسجيل الدخول بحساب جوجل');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'فشل تسجيل الدخول بحساب جوجل';
+      toast.error(message);
     }
   };
 

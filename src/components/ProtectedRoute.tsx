@@ -1,5 +1,14 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import type { AppRole } from '@/types/database';
+
+const adminRoles: AppRole[] = [
+  'super_admin',
+  'orders_manager',
+  'finance_member',
+  'content_manager',
+  'support_member',
+];
 
 export function ProtectedRoute({ 
   children, 
@@ -23,7 +32,7 @@ export function ProtectedRoute({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (requireAdmin && profile?.role === 'customer') {
+  if (requireAdmin && (!profile?.role || !adminRoles.includes(profile.role))) {
     return <Navigate to="/" replace />;
   }
 

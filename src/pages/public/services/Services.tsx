@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase';
 import { ServiceCard } from '@/components/public/ServiceCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { useSearchParams } from 'react-router-dom';
 import { 
   Select, 
   SelectContent, 
@@ -14,8 +16,20 @@ import {
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 
 export default function ServicesPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  
+  const categoryFilter = searchParams.get('category') || 'all';
+  const setCategoryFilter = (val: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (val === 'all') {
+      nextParams.delete('category');
+    } else {
+      nextParams.set('category', val);
+    }
+    setSearchParams(nextParams);
+  };
+
   const [sortBy, setSortBy] = useState<string>('latest');
 
   const { data: categories } = useQuery({

@@ -9,8 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ImageUpload } from '@/components/shared/ImageUpload';
 import { toast } from 'sonner';
 import { 
-  Package, Calendar, CreditCard, CheckCircle2, XCircle, AlertCircle, Clock, 
-  ExternalLink, Eye, Key, Mail, ShieldAlert, ArrowLeft
+  CheckCircle2, Clock, ExternalLink, Key, Mail, ShieldAlert
 } from 'lucide-react';
 
 interface OrderWithRelations {
@@ -45,6 +44,10 @@ interface OrderWithRelations {
   services: any | null;
   delivery_details: any[] | null;
   payment_proofs: any[] | null;
+  delivery: any[] | null;
+  proofs: any[] | null;
+  plan: any | null;
+  service: any | null;
 }
 
 export default function ProfilePage() {
@@ -79,7 +82,6 @@ export default function ProfilePage() {
   // Re-submit Payment Proof Mutation
   const submitProofMutation = useMutation({
     mutationFn: async ({ orderId, fileUrl, paymentMethodId, amount }: { orderId: string; fileUrl: string; paymentMethodId: string; amount: number }) => {
-      // @ts-ignore
       const { data, error } = await supabase.rpc('submit_payment_proof', {
         p_order_id: orderId,
         p_payment_method_id: paymentMethodId,
@@ -175,7 +177,7 @@ export default function ProfilePage() {
                     const plan = order.service_plans;
                     const service = order.services;
                     const proofs = order.payment_proofs || [];
-                    const delivery = order.delivery_details || [];
+                    const delivery = (order.delivery_details || []).filter((detail: any) => detail.visible_in_profile === true);
 
                     return (
                       <div 

@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   DollarSign, ShoppingCart, Clock, CheckCircle2, AlertTriangle, 
-  TrendingUp, RefreshCcw 
 } from 'lucide-react';
 
 export default function AdminOverview() {

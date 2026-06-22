@@ -2,16 +2,27 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { Star, HelpCircle, ArrowLeft, MessageSquare, Check, Sparkles, Shield, Headset } from 'lucide-react';
+import { Star, HelpCircle, ArrowLeft, Check, Sparkles, Shield, Headset } from 'lucide-react';
 
 export default function HomePage() {
   // Fetch site settings
   const { data: settings } = useQuery({
     queryKey: ['site_settings'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('site_settings').select('*').single();
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      const { data, error } = await supabase.from('site_settings').select('*');
+      if (error) throw error;
+      
+      const flatSettings = {
+        site_name: 'Saifrow Store',
+      };
+
+      data?.forEach((row: any) => {
+        if (row.key === 'general') {
+          flatSettings.site_name = row.value?.site_name || flatSettings.site_name;
+        }
+      });
+
+      return flatSettings;
     }
   });
 
@@ -75,7 +86,7 @@ export default function HomePage() {
   const { data: faqs } = useQuery({
     queryKey: ['faqs', 'home'],
     queryFn: async () => {
-      let { data, error } = await supabase
+      const { data: generalFaqs, error } = await supabase
         .from('faqs')
         .select('*')
         .eq('is_active', true)
@@ -83,6 +94,7 @@ export default function HomePage() {
         .order('sort_order', { ascending: true });
       
       if (error) throw error;
+      let data = generalFaqs;
       
       if (!data || data.length === 0) {
         const { data: allFaqs, error: err } = await supabase

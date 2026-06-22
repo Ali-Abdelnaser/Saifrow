@@ -11,6 +11,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 export function PublicHeader() {
   const { isAuthenticated, profile, isLoading } = useAuth();
@@ -18,9 +26,23 @@ export function PublicHeader() {
   const { data: settings } = useQuery({
     queryKey: ['site_settings'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('site_settings').select('*').single();
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      const { data, error } = await supabase.from('site_settings').select('*');
+      if (error) throw error;
+      
+      const flatSettings = {
+        site_name: 'Saifrow Store',
+        logo_url: '',
+      };
+
+      data?.forEach((row: any) => {
+        if (row.key === 'general') {
+          flatSettings.site_name = row.value?.site_name || flatSettings.site_name;
+        } else if (row.key === 'branding') {
+          flatSettings.logo_url = row.value?.logo_url || '';
+        }
+      });
+
+      return flatSettings;
     }
   });
 
@@ -30,6 +52,11 @@ export function PublicHeader() {
   };
 
   const siteName = settings?.site_name || 'Saifrow Store';
+  const navLinks = [
+    { to: '/services', label: 'الخدمات' },
+    { to: '/faq', label: 'الأسئلة الشائعة' },
+    { to: '/contact', label: 'تواصل معنا' },
+  ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -43,15 +70,11 @@ export function PublicHeader() {
             )}
           </Link>
           <nav className="hidden md:flex gap-6">
-            <Link to="/services" className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground">
-              الخدمات
-            </Link>
-            <Link to="/faq" className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground">
-              الأسئلة الشائعة
-            </Link>
-            <Link to="/contact" className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground">
-              تواصل معنا
-            </Link>
+            {navLinks.map((item) => (
+              <Link key={item.to} to={item.to} className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground">
+                {item.label}
+              </Link>
+            ))}
           </nav>
         </div>
 
@@ -101,9 +124,61 @@ export function PublicHeader() {
             </div>
           )}
 
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Menu className="h-5 w-5" />
-          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden" aria-label="فتح القائمة">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-80 text-right">
+              <SheetHeader className="text-right">
+                <SheetTitle>{siteName}</SheetTitle>
+              </SheetHeader>
+              <nav className="mt-8 flex flex-col gap-2">
+                {navLinks.map((item) => (
+                  <SheetClose key={item.to} asChild>
+                    <Link to={item.to} className="rounded-lg px-3 py-3 text-sm font-medium hover:bg-muted">
+                      {item.label}
+                    </Link>
+                  </SheetClose>
+                ))}
+              </nav>
+              <div className="mt-8 border-t pt-6">
+                {isAuthenticated ? (
+                  <div className="space-y-2">
+                    <SheetClose asChild>
+                      <Link to="/profile" className="block rounded-lg px-3 py-3 text-sm font-medium hover:bg-muted">
+                        حسابي
+                      </Link>
+                    </SheetClose>
+                    {profile?.role && profile.role !== 'customer' && (
+                      <SheetClose asChild>
+                        <Link to="/admin" className="block rounded-lg px-3 py-3 text-sm font-medium hover:bg-muted">
+                          لوحة التحكم
+                        </Link>
+                      </SheetClose>
+                    )}
+                    <Button variant="destructive" className="mt-4 w-full" onClick={handleLogout}>
+                      تسجيل الخروج
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid gap-3">
+                    <SheetClose asChild>
+                      <Button variant="outline" asChild>
+                        <Link to="/login">تسجيل الدخول</Link>
+                      </Button>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Button asChild>
+                        <Link to="/register">حساب جديد</Link>
+                      </Button>
+                    </SheetClose>
+                  </div>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>

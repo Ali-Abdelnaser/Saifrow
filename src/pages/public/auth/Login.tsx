@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useForm } from 'react-form'; // using standard or react-hook-form
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { z } from 'zod';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+
+const loginSchema = z.object({
+  email: z.string().email('يرجى إدخال بريد إلكتروني صحيح'),
+  password: z.string().min(1, 'يرجى إدخال كلمة المرور'),
+});
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,17 +23,25 @@ export default function LoginPage() {
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validation = loginSchema.safeParse({ email, password });
+
+    if (!validation.success) {
+      toast.error(validation.error.issues[0]?.message || 'يرجى مراجعة بيانات الدخول');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: validation.data.email,
+        password: validation.data.password,
       });
       if (error) throw error;
       toast.success('تم تسجيل الدخول بنجاح');
       navigate(from, { replace: true });
-    } catch (error: any) {
-      toast.error(error.message || 'فشل تسجيل الدخول');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'فشل تسجيل الدخول';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -45,8 +56,9 @@ export default function LoginPage() {
         },
       });
       if (error) throw error;
-    } catch (error: any) {
-      toast.error(error.message || 'فشل تسجيل الدخول بحساب جوجل');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'فشل تسجيل الدخول بحساب جوجل';
+      toast.error(message);
     }
   };
 

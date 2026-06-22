@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Mail, Phone, MessageSquare, Send, CheckCircle2 } from 'lucide-react';
+import { Mail, Phone, MessageSquare, Send } from 'lucide-react';
 
 export default function ContactPage() {
   const [name, setName] = useState('');
@@ -18,9 +18,24 @@ export default function ContactPage() {
   const { data: settings } = useQuery({
     queryKey: ['site_settings'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('site_settings').select('*').single();
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      const { data, error } = await supabase.from('site_settings').select('*');
+      if (error) throw error;
+      
+      const flatSettings = {
+        contact_email: 'support@saifrow.store',
+        contact_phone: '',
+        whatsapp_number: '',
+      };
+
+      data?.forEach((row: any) => {
+        if (row.key === 'contact') {
+          flatSettings.contact_email = row.value?.email || flatSettings.contact_email;
+          flatSettings.contact_phone = row.value?.phone || '';
+          flatSettings.whatsapp_number = row.value?.whatsapp || '';
+        }
+      });
+
+      return flatSettings;
     }
   });
 

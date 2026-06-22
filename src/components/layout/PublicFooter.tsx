@@ -6,9 +6,29 @@ export function PublicFooter() {
   const { data: settings } = useQuery({
     queryKey: ['site_settings'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('site_settings').select('*').single();
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      const { data, error } = await supabase.from('site_settings').select('*');
+      if (error) throw error;
+      
+      const flatSettings = {
+        site_name: 'Saifrow Store',
+        description: 'متجرك الرقمي الأول لاشتراكاتك المفضلة. نقدم خدمات رقمية متنوعة بأسعار تنافسية.',
+        contact_email: 'support@saifrow.store',
+        contact_phone: '',
+        whatsapp_number: '',
+      };
+
+      data?.forEach((row: any) => {
+        if (row.key === 'general') {
+          flatSettings.site_name = row.value?.site_name || flatSettings.site_name;
+          flatSettings.description = row.value?.site_description || flatSettings.description;
+        } else if (row.key === 'contact') {
+          flatSettings.contact_email = row.value?.email || flatSettings.contact_email;
+          flatSettings.contact_phone = row.value?.phone || '';
+          flatSettings.whatsapp_number = row.value?.whatsapp || '';
+        }
+      });
+
+      return flatSettings;
     }
   });
 

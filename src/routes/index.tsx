@@ -4,6 +4,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import HomePage from '@/pages/public/Home';
 import LoginPage from '@/pages/public/auth/Login';
 import RegisterPage from '@/pages/public/auth/Register';
+import ForgotPasswordPage from '@/pages/public/auth/ForgotPassword';
 import ServicesPage from '@/pages/public/services/Services';
 import ServiceDetailsPage from '@/pages/public/services/ServiceDetails';
 import CheckoutPage from '@/pages/public/Checkout';
@@ -39,6 +40,7 @@ export const router = createBrowserRouter([
       { path: 'services/:slug', element: <ServiceDetailsPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
+      { path: 'forgot-password', element: <ForgotPasswordPage /> },
       {
         path: 'profile',
         element: (

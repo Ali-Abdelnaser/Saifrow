@@ -26,9 +26,37 @@ export default function AdminSettings() {
   const { data: settings } = useQuery({
     queryKey: ['admin_settings'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('site_settings').select('*').single();
-      if (error && error.code !== 'PGRST116') throw error;
-      return data || null;
+      const { data, error } = await supabase.from('site_settings').select('*');
+      if (error) throw error;
+      
+      const flatSettings = {
+        id: 'global',
+        site_name: '',
+        description: '',
+        logo_url: '',
+        contact_email: '',
+        whatsapp_number: '',
+        general_id: '',
+        branding_id: '',
+        contact_id: ''
+      };
+
+      data?.forEach((row: any) => {
+        if (row.key === 'general') {
+          flatSettings.site_name = row.value?.site_name || '';
+          flatSettings.description = row.value?.site_description || '';
+          flatSettings.general_id = row.id;
+        } else if (row.key === 'branding') {
+          flatSettings.logo_url = row.value?.logo_url || '';
+          flatSettings.branding_id = row.id;
+        } else if (row.key === 'contact') {
+          flatSettings.contact_email = row.value?.email || '';
+          flatSettings.whatsapp_number = row.value?.whatsapp || '';
+          flatSettings.contact_id = row.id;
+        }
+      });
+
+      return flatSettings;
     },
   });
 
@@ -65,23 +93,48 @@ export default function AdminSettings() {
   // Save Mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
-      // Upsert site settings
-      const settingsPayload = {
-        site_name: siteName,
-        description: description || null,
-        logo_url: logoUrl || null,
-        contact_email: contactEmail || null,
-        whatsapp_number: whatsappNumber || null,
-        updated_at: new Date().toISOString()
-      };
+      // 1. Update general
+      const { error: err1 } = await supabase
+        .from('site_settings')
+        .update({
+          value: {
+            site_name: siteName,
+            site_description: description || null
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq('key', 'general');
+      if (err1) throw err1;
 
-      const { error: settingsError } = settings?.id 
-        ? await supabase.from('site_settings').update(settingsPayload).eq('id', settings.id)
-        : await supabase.from('site_settings').insert([settingsPayload]);
+      // 2. Update branding
+      const { error: err2 } = await supabase
+        .from('site_settings')
+        .update({
+          value: {
+            logo_url: logoUrl || null,
+            favicon_url: null,
+            primary_color: '#000000'
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq('key', 'branding');
+      if (err2) throw err2;
 
-      if (settingsError) throw settingsError;
+      // 3. Update contact
+      const { error: err3 } = await supabase
+        .from('site_settings')
+        .update({
+          value: {
+            email: contactEmail || null,
+            whatsapp: whatsappNumber || null,
+            phone: whatsappNumber || null
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq('key', 'contact');
+      if (err3) throw err3;
 
-      // Upsert homepage hero
+      // 4. Upsert homepage hero
       const heroPayload = {
         hero_title: heroTitle || null,
         hero_subtitle: heroSubtitle || null,

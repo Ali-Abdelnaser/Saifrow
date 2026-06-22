@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { HelpCircle, Search, Sparkles } from 'lucide-react';
+import { HelpCircle, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 export default function FaqPage() {

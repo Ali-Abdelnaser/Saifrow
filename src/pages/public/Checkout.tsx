@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import type { Database } from '@/types/database';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -74,13 +75,15 @@ export default function CheckoutPage() {
       
       if (error) throw new Error('الكوبون غير صالح أو انتهت صلاحيته');
 
+      const coupon = data as unknown as Database['public']['Tables']['coupons']['Row'];
+
       // Check dates
       const now = new Date().toISOString();
-      if (data.starts_at && data.starts_at > now) throw new Error('الكوبون لم يبدأ بعد');
-      if (data.ends_at && data.ends_at < now) throw new Error('الكوبون منتهي الصلاحية');
-      if (data.usage_limit && data.used_count >= data.usage_limit) throw new Error('تم استهلاك الكوبون بالكامل');
+      if (coupon.starts_at && coupon.starts_at > now) throw new Error('الكوبون لم يبدأ بعد');
+      if (coupon.ends_at && coupon.ends_at < now) throw new Error('الكوبون منتهي الصلاحية');
+      if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) throw new Error('تم استهلاك الكوبون بالكامل');
 
-      return data;
+      return coupon;
     },
     onSuccess: (data) => {
       setActiveCoupon(data);
@@ -145,7 +148,6 @@ export default function CheckoutPage() {
     mutationFn: async () => {
       if (!proofUrl) throw new Error('يرجى تحميل صورة إيصال التحويل');
       
-      // @ts-ignore
       const { data, error } = await supabase.rpc('submit_payment_proof', {
         p_order_id: createdOrderId,
         p_payment_method_id: paymentMethodId,
@@ -337,7 +339,9 @@ export default function CheckoutPage() {
                       
                       {selectedPaymentMethod.instapay_handle && (
                         <div>
-                          <span className="text-muted-foreground block text-xs">عنوان InstaPay:</span>
+                          <span className="text-muted-foreground block text-xs">
+                            {selectedPaymentMethod.type === 'binance' ? 'معرف بايننس (Binance Pay ID):' : 'عنوان InstaPay:'}
+                          </span>
                           <span className="font-semibold text-lg select-all">{selectedPaymentMethod.instapay_handle}</span>
                         </div>
                       )}
@@ -351,7 +355,9 @@ export default function CheckoutPage() {
 
                       {selectedPaymentMethod.bank_account && (
                         <div className="sm:col-span-2">
-                          <span className="text-muted-foreground block text-xs">الحساب البنكي / رقم الآيبان IBAN:</span>
+                          <span className="text-muted-foreground block text-xs">
+                            {selectedPaymentMethod.type === 'credit_card' ? 'رقم البطاقة / الحساب البنكي:' : 'الحساب البنكي / رقم الآيبان IBAN:'}
+                          </span>
                           <span className="font-mono font-semibold select-all">{selectedPaymentMethod.bank_account}</span>
                         </div>
                       )}

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,14 +11,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { PaymentProofPreview } from '@/components/shared/PaymentProofPreview';
 import { toast } from 'sonner';
 import { Search, Eye, Check, X, Loader2 } from 'lucide-react';
+import type { DeliveryType, OrderStatus } from '@/types/database';
 
 export default function AdminOrders() {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   
   // Modals / Dialogs
@@ -30,7 +32,7 @@ export default function AdminOrders() {
   const [rejectionReason, setRejectionReason] = useState('');
 
   // Approve / Delivery States
-  const [deliveryType, setDeliveryType] = useState<string>('email_password');
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>('email_password');
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [activationCode, setActivationCode] = useState('');
@@ -73,7 +75,7 @@ export default function AdminOrders() {
       const { data, error } = await supabase.rpc('approve_payment_and_complete_order', {
         p_order_id: selectedOrder.id,
         p_payment_proof_id: latestProof?.id || '',
-        p_delivery_type: deliveryType as any,
+        p_delivery_type: deliveryType,
         p_login_email: loginEmail || undefined,
         p_login_password: loginPassword || undefined,
         p_activation_code: activationCode || undefined,
@@ -190,7 +192,7 @@ export default function AdminOrders() {
           />
         </div>
         <div className="w-full sm:w-48">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as OrderStatus | 'all')}>
             <SelectTrigger>
               <SelectValue placeholder="الحالة" />
             </SelectTrigger>
@@ -307,11 +309,11 @@ export default function AdminOrders() {
                                     
                                     {selectedOrder.payment_proofs.map((proof: any) => (
                                       <div key={proof.id} className="flex flex-col sm:flex-row gap-4 border-b last:border-0 pb-4 last:pb-0">
-                                        <div className="w-full sm:w-48 h-32 bg-muted rounded-lg overflow-hidden border shrink-0">
-                                          <a href={proof.screenshot_url} target="_blank" rel="noopener noreferrer">
-                                            <img src={proof.screenshot_url} alt="Proof of Payment" className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
-                                          </a>
-                                        </div>
+                                        <PaymentProofPreview
+                                          source={proof.screenshot_url}
+                                          className="block w-full sm:w-48 h-32 bg-muted rounded-lg overflow-hidden border shrink-0"
+                                          imageClassName="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                                        />
                                         <div className="space-y-1.5 text-sm flex-1">
                                           <p>حالة الإثبات: {proof.status === 'pending' ? <Badge variant="outline" className="bg-blue-50 text-blue-700">معلق</Badge> : proof.status === 'approved' ? <Badge variant="outline" className="bg-green-50 text-green-700">مقبول</Badge> : <Badge variant="destructive">مرفوض</Badge>}</p>
                                           <p className="text-xs text-muted-foreground">تاريخ الرفع: {new Date(proof.created_at).toLocaleString('ar-EG')}</p>
@@ -348,7 +350,7 @@ export default function AdminOrders() {
                                           
                                           <div className="space-y-2">
                                             <Label>نوع التسليم</Label>
-                                            <Select value={deliveryType} onValueChange={setDeliveryType}>
+                                            <Select value={deliveryType} onValueChange={(value) => setDeliveryType(value as DeliveryType)}>
                                               <SelectTrigger>
                                                 <SelectValue />
                                               </SelectTrigger>

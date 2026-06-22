@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Badge } from '@/components/ui/badge';
 import { PlanCard } from '@/components/public/PlanCard';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Star } from 'lucide-react';
 
 export default function ServiceDetailsPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -153,6 +153,32 @@ export default function ServiceDetailsPage() {
                     <div key={faq.id} className="bg-card border rounded-xl p-5">
                       <h3 className="font-bold mb-2">{faq.question}</h3>
                       <p className="text-muted-foreground text-sm leading-relaxed">{faq.answer}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {activeReviews.length > 0 && (
+              <section>
+                <h2 className="text-2xl font-bold mb-6">آراء العملاء</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {activeReviews.map((review: any) => (
+                    <div key={review.id} className="bg-card border rounded-xl p-5 space-y-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <h3 className="font-bold">{review.customer_name}</h3>
+                        <div className="flex items-center gap-0.5">
+                          {Array.from({ length: 5 }).map((_, idx) => (
+                            <Star
+                              key={idx}
+                              className={`w-4 h-4 ${
+                                idx < review.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-200'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-muted-foreground text-sm leading-relaxed">{review.review_text}</p>
                     </div>
                   ))}
                 </div>

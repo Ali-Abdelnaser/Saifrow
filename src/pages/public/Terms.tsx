@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { ShieldAlert } from 'lucide-react';
@@ -7,9 +6,20 @@ export default function TermsPage() {
   const { data: settings } = useQuery({
     queryKey: ['site_settings'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('site_settings').select('*').single();
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      const { data, error } = await supabase.from('site_settings').select('*');
+      if (error) throw error;
+      
+      const flatSettings = {
+        site_name: 'Saifrow Store',
+      };
+
+      data?.forEach((row: any) => {
+        if (row.key === 'general') {
+          flatSettings.site_name = row.value?.site_name || flatSettings.site_name;
+        }
+      });
+
+      return flatSettings;
     }
   });
 

@@ -3,15 +3,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { PaymentProofPreview } from '@/components/shared/PaymentProofPreview';
 import { toast } from 'sonner';
 import { Eye, Check, X, Loader2 } from 'lucide-react';
+import type { DeliveryType } from '@/types/database';
 
 export default function AdminPayments() {
   const queryClient = useQueryClient();
@@ -24,7 +25,7 @@ export default function AdminPayments() {
   const [rejectionReason, setRejectionReason] = useState('');
 
   // Delivery States
-  const [deliveryType, setDeliveryType] = useState<string>('email_password');
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>('email_password');
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [activationCode, setActivationCode] = useState('');
@@ -58,7 +59,7 @@ export default function AdminPayments() {
       const { data, error } = await supabase.rpc('approve_payment_and_complete_order', {
         p_order_id: selectedOrder.id,
         p_payment_proof_id: latestProof?.id || '',
-        p_delivery_type: deliveryType as any,
+        p_delivery_type: deliveryType,
         p_login_email: loginEmail || undefined,
         p_login_password: loginPassword || undefined,
         p_activation_code: activationCode || undefined,
@@ -165,9 +166,11 @@ export default function AdminPayments() {
                                 <div className="border rounded-xl p-4 bg-muted/30">
                                   <span className="text-muted-foreground block text-xs mb-2">إيصال الدفع المرفق:</span>
                                   {selectedOrder.payment_proofs?.[0] ? (
-                                    <a href={selectedOrder.payment_proofs[0].screenshot_url} target="_blank" rel="noopener noreferrer" className="block max-h-96 overflow-hidden border rounded-lg">
-                                      <img src={selectedOrder.payment_proofs[0].screenshot_url} alt="Proof screenshot" className="w-full object-contain hover:opacity-95" />
-                                    </a>
+                                    <PaymentProofPreview
+                                      source={selectedOrder.payment_proofs[0].screenshot_url}
+                                      className="block max-h-96 overflow-hidden border rounded-lg"
+                                      imageClassName="w-full object-contain hover:opacity-95"
+                                    />
                                   ) : (
                                     <p className="text-sm text-destructive">لم يتم رفع إيصال!</p>
                                   )}
@@ -189,7 +192,7 @@ export default function AdminPayments() {
                                       <div className="space-y-4 py-4 text-right">
                                         <div className="space-y-2">
                                           <Label>نوع التسليم</Label>
-                                          <Select value={deliveryType} onValueChange={setDeliveryType}>
+                                          <Select value={deliveryType} onValueChange={(value) => setDeliveryType(value as DeliveryType)}>
                                             <SelectTrigger>
                                               <SelectValue />
                                             </SelectTrigger>
@@ -213,6 +216,20 @@ export default function AdminPayments() {
                                               <Input id="pass" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} dir="ltr" />
                                             </div>
                                           </>
+                                        )}
+
+                                        {deliveryType === 'activation_code' && (
+                                          <div className="space-y-2">
+                                            <Label htmlFor="activation-code">كود التفعيل</Label>
+                                            <Input id="activation-code" value={activationCode} onChange={(e) => setActivationCode(e.target.value)} dir="ltr" />
+                                          </div>
+                                        )}
+
+                                        {deliveryType === 'invite_link' && (
+                                          <div className="space-y-2">
+                                            <Label htmlFor="invite-link">رابط الدعوة</Label>
+                                            <Input id="invite-link" value={inviteLink} onChange={(e) => setInviteLink(e.target.value)} dir="ltr" />
+                                          </div>
                                         )}
 
                                         <div className="space-y-2">

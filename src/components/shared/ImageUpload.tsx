@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
@@ -8,7 +8,7 @@ interface ImageUploadProps {
   bucketName: string;
   folderPath?: string;
   onUploadSuccess: (url: string) => void;
-  onUploadError?: (error: any) => void;
+  onUploadError?: (error: unknown) => void;
   label?: string;
 }
 
@@ -47,7 +47,7 @@ export function ImageUpload({
       const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
 
       // Upload file to Supabase Storage
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from(bucketName)
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -61,10 +61,13 @@ export function ImageUpload({
         .from(bucketName)
         .getPublicUrl(filePath);
 
-      setPreviewUrl(publicUrl);
-      onUploadSuccess(publicUrl);
+      const storedValue = bucketName === 'payment-proofs' ? filePath : publicUrl;
+      const preview = bucketName === 'payment-proofs' ? URL.createObjectURL(file) : publicUrl;
+
+      setPreviewUrl(preview);
+      onUploadSuccess(storedValue);
       toast.success('تم رفع الصورة بنجاح');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Upload error:', error);
       toast.error('حدث خطأ أثناء رفع الصورة');
       if (onUploadError) onUploadError(error);

@@ -4,7 +4,40 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ShieldCheck, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ShieldCheck, Loader2, Eye } from 'lucide-react';
+
+const sensitiveLogKeys = new Set([
+  'login_email',
+  'login_password',
+  'activation_code',
+  'invite_link',
+  'instructions',
+  'custom_fields',
+  'delivery_details',
+]);
+
+function redactSensitiveLogData(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(redactSensitiveLogData);
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => [
+        key,
+        sensitiveLogKeys.has(key) ? '[مخفي]' : redactSensitiveLogData(nestedValue),
+      ]),
+    );
+  }
+
+  return value;
+}
+
+function formatLogJson(value: unknown) {
+  return JSON.stringify(redactSensitiveLogData(value), null, 2);
+}
 
 export default function AdminLogs() {
   const { profile } = useAuth();
@@ -64,7 +97,40 @@ export default function AdminLogs() {
                       <Badge variant="outline">{log.action_type}</Badge>
                     </TableCell>
                     <TableCell>{log.entity_type}</TableCell>
-                    <TableCell className="font-mono text-xs">{log.entity_id}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      <div className="flex items-center gap-2">
+                        <span>{log.entity_id || '-'}</span>
+                        {(log.old_data || log.new_data) && (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <Eye className="ml-1 h-3.5 w-3.5" />
+                                عرض
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-3xl">
+                              <DialogHeader>
+                                <DialogTitle className="text-right">تفاصيل سجل النشاط</DialogTitle>
+                              </DialogHeader>
+                              <div className="grid gap-4 md:grid-cols-2">
+                                <div>
+                                  <h3 className="mb-2 text-sm font-bold">قبل التعديل</h3>
+                                  <pre className="max-h-96 overflow-auto rounded-lg bg-muted p-3 text-left text-xs" dir="ltr">
+                                    {formatLogJson(log.old_data || {})}
+                                  </pre>
+                                </div>
+                                <div>
+                                  <h3 className="mb-2 text-sm font-bold">بعد التعديل</h3>
+                                  <pre className="max-h-96 overflow-auto rounded-lg bg-muted p-3 text-left text-xs" dir="ltr">
+                                    {formatLogJson(log.new_data || {})}
+                                  </pre>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
                       {new Date(log.created_at).toLocaleString('ar-EG')}
                     </TableCell>
