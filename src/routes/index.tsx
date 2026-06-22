@@ -1,0 +1,84 @@
+import { createBrowserRouter } from 'react-router-dom';
+import { PublicLayout } from '@/components/layout/PublicLayout';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import HomePage from '@/pages/public/Home';
+import LoginPage from '@/pages/public/auth/Login';
+import RegisterPage from '@/pages/public/auth/Register';
+import ServicesPage from '@/pages/public/services/Services';
+import ServiceDetailsPage from '@/pages/public/services/ServiceDetails';
+import CheckoutPage from '@/pages/public/Checkout';
+import ProfilePage from '@/pages/public/Profile';
+
+// Admin Pages
+import { AdminLayout } from '@/components/layout/AdminLayout';
+import AdminOverview from '@/pages/admin/Overview';
+import AdminOrders from '@/pages/admin/Orders';
+import AdminPayments from '@/pages/admin/Payments';
+import AdminServices from '@/pages/admin/Services';
+import AdminPlans from '@/pages/admin/Plans';
+import AdminCategories from '@/pages/admin/Categories';
+import AdminPaymentMethods from '@/pages/admin/PaymentMethods';
+import AdminCoupons from '@/pages/admin/Coupons';
+import AdminReviews from '@/pages/admin/Reviews';
+import AdminFaqs from '@/pages/admin/Faqs';
+import AdminSettings from '@/pages/admin/Settings';
+import AdminTeam from '@/pages/admin/Team';
+import AdminLogs from '@/pages/admin/Logs';
+
+export const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <PublicLayout />,
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: 'services', element: <ServicesPage /> },
+      { path: 'services/:slug', element: <ServiceDetailsPage /> },
+      { path: 'login', element: <LoginPage /> },
+      { path: 'register', element: <RegisterPage /> },
+      {
+        path: 'profile',
+        element: (
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'checkout/:planId',
+        element: (
+          <ProtectedRoute>
+            <CheckoutPage />
+          </ProtectedRoute>
+        ),
+      },
+      // Static
+      { path: 'faq', element: <div className="container py-12 text-right">صفحة الأسئلة الشائعة</div> },
+      { path: 'contact', element: <div className="container py-12 text-right">صفحة اتصل بنا</div> },
+      { path: 'terms', element: <div className="container py-12 text-right">شروط الخدمة</div> },
+      { path: 'privacy', element: <div className="container py-12 text-right">سياسة الخصوصية</div> },
+    ],
+  },
+  {
+    path: '/admin',
+    element: (
+      <ProtectedRoute requireAdmin>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      { index: true, element: <AdminOverview /> },
+      { path: 'orders', element: <AdminOrders /> },
+      { path: 'payments', element: <AdminPayments /> },
+      { path: 'services', element: <AdminServices /> },
+      { path: 'plans', element: <AdminPlans /> },
+      { path: 'categories', element: <AdminCategories /> },
+      { path: 'payment-methods', element: <AdminPaymentMethods /> },
+      { path: 'coupons', element: <AdminCoupons /> },
+      { path: 'reviews', element: <AdminReviews /> },
+      { path: 'faqs', element: <AdminFaqs /> },
+      { path: 'settings', element: <AdminSettings /> },
+      { path: 'team', element: <AdminTeam /> },
+      { path: 'logs', element: <AdminLogs /> },
+    ],
+  },
+]);
