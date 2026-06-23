@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { PaymentProofPreview } from '@/components/shared/PaymentProofPreview';
 import { toast } from 'sonner';
-import { Search, Eye, Check, X, Loader2 } from 'lucide-react';
+import { Search, Eye, Check, X, Loader2, Trash2 } from 'lucide-react';
 import type { DeliveryType, OrderStatus } from '@/types/database';
 
 export default function AdminOrders() {
@@ -134,6 +134,30 @@ export default function AdminOrders() {
     }
   });
 
+  // Delete Order Mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      // 1. Delete associated tables first to avoid foreign key errors
+      await supabase.from('payment_proofs').delete().eq('order_id', orderId);
+      await supabase.from('delivery_details').delete().eq('order_id', orderId);
+      await supabase.from('coupon_usages').delete().eq('order_id', orderId);
+      await supabase.from('email_logs').delete().eq('order_id', orderId);
+      
+      // 2. Delete the order
+      const { error } = await supabase.from('orders').delete().eq('id', orderId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin_orders'] });
+      queryClient.invalidateQueries({ queryKey: ['admin_stats'] });
+      toast.success('تم حذف الطلب بنجاح');
+      setIsDetailsOpen(false);
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'خطأ أثناء حذف الطلب');
+    }
+  });
+
   const getOrderStatusBadge = (status: string) => {
     switch (status) {
       case 'pending_payment':
@@ -250,10 +274,11 @@ export default function AdminOrders() {
                       <TableCell>{getPaymentStatusBadge(order.payment_status)}</TableCell>
                       <TableCell>{new Date(order.created_at).toLocaleDateString('ar-EG')}</TableCell>
                       <TableCell className="text-left">
-                        <Dialog open={isDetailsOpen && selectedOrder?.id === order.id} onOpenChange={(open) => {
-                          setIsDetailsOpen(open);
-                          if (open) setSelectedOrder({ ...order, plan, service, payment_proofs: proofs });
-                        }}>
+                        <div className="flex items-center justify-end gap-2">
+                          <Dialog open={isDetailsOpen && selectedOrder?.id === order.id} onOpenChange={(open) => {
+                            setIsDetailsOpen(open);
+                            if (open) setSelectedOrder({ ...order, plan, service, payment_proofs: proofs });
+                          }}>
                           <DialogTrigger asChild>
                             <Button variant="outline" size="sm">
                               <Eye className="w-4 h-4 ml-1.5" />
@@ -448,7 +473,29 @@ export default function AdminOrders() {
                             )}
                           </DialogContent>
                         </Dialog>
-                      </TableCell>
+
+                        {canModeratePayments && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-destructive hover:text-destructive hover:bg-red-50 h-8 w-8 p-0"
+                            onClick={() => {
+                              if (window.confirm(`هل أنت متأكد من رغبتك في حذف الطلب #${order.order_number} نهائياً؟`)) {
+                                deleteMutation.mutate(order.id);
+                              }
+                            }}
+                            disabled={deleteMutation.isPending}
+                            title="حذف الطلب"
+                          >
+                            {deleteMutation.isPending && selectedOrder?.id === order.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
                     </TableRow>
                   );
                 })}
