@@ -39,7 +39,21 @@ function formatLogJson(value: unknown) {
   return JSON.stringify(redactSensitiveLogData(value), null, 2);
 }
 
-function getActionTypeName(action: string) {
+import type { Database } from '@/types/database';
+
+type LogRow = Database['public']['Views']['enriched_admin_activity_logs']['Row'];
+
+interface LogDataPayload {
+  order_number?: string;
+  customer_name?: string;
+  customer_email?: string;
+  total?: number;
+  name?: string;
+  code?: string;
+  question?: string;
+}
+
+function getActionTypeName(action: string): string {
   switch (action) {
     case 'approve_payment_and_complete_order':
       return 'قبول دفع وتوصيل';
@@ -58,7 +72,7 @@ function getActionTypeName(action: string) {
   }
 }
 
-function getFriendlyEntityName(entity: string) {
+function getFriendlyEntityName(entity: string): string {
   switch (entity) {
     case 'orders':
       return 'الطلبات';
@@ -81,26 +95,28 @@ function getFriendlyEntityName(entity: string) {
   }
 }
 
-function getFriendlyActionDescription(log: any) {
+function getFriendlyActionDescription(log: LogRow): string {
   let details = '';
+  const oldData = log.old_data as LogDataPayload | null;
+  const newData = log.new_data as LogDataPayload | null;
   
   if (log.entity_type === 'orders') {
-    const orderNum = log.order_number || log.old_data?.order_number || log.new_data?.order_number;
-    const customerName = log.customer_name || log.old_data?.customer_name || log.new_data?.customer_name;
+    const orderNum = log.order_number || oldData?.order_number || newData?.order_number;
+    const customerName = log.customer_name || oldData?.customer_name || newData?.customer_name;
     details = orderNum 
       ? `الطلب #${orderNum} ${customerName ? `(للعميل: ${customerName})` : ''}` 
       : `طلب (معرف: ${log.entity_id})`;
   } else if (log.entity_type === 'services') {
-    const serviceName = log.new_data?.name || log.old_data?.name;
+    const serviceName = newData?.name || oldData?.name;
     details = serviceName ? `الخدمة "${serviceName}"` : `خدمة (معرف: ${log.entity_id})`;
   } else if (log.entity_type === 'categories') {
-    const catName = log.new_data?.name || log.old_data?.name;
+    const catName = newData?.name || oldData?.name;
     details = catName ? `التصنيف "${catName}"` : `التصنيف (معرف: ${log.entity_id})`;
   } else if (log.entity_type === 'coupons') {
-    const couponCode = log.new_data?.code || log.old_data?.code;
+    const couponCode = newData?.code || oldData?.code;
     details = couponCode ? `الكوبون "${couponCode}"` : `كوبون (معرف: ${log.entity_id})`;
   } else if (log.entity_type === 'faqs') {
-    const faqQ = log.new_data?.question || log.old_data?.question;
+    const faqQ = newData?.question || oldData?.question;
     details = faqQ ? `السؤال الشائع "${faqQ.substring(0, 30)}..."` : `سؤال شائع (معرف: ${log.entity_id})`;
   } else {
     details = `${log.entity_type} (معرف: ${log.entity_id})`;
@@ -161,61 +177,116 @@ export default function AdminLogs() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {logs.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-bold text-sm">{log.admin_name || 'نظام تلقائي'}</p>
-                        {log.admin_email && <p className="text-xs text-muted-foreground">{log.admin_email}</p>}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-semibold text-sm">
-                      {getFriendlyActionDescription(log)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="bg-blue-50 text-accent border-blue-100">
-                        {getFriendlyEntityName(log.entity_type)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      <div className="flex items-center gap-2">
-                        <span>{log.entity_id ? `${log.entity_id.substring(0, 8)}...` : '-'}</span>
-                        {(log.old_data || log.new_data) && (
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Eye className="ml-1 h-3.5 w-3.5" />
-                                التفاصيل
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-3xl">
-                              <DialogHeader>
-                                <DialogTitle className="text-right">تفاصيل سجل النشاط</DialogTitle>
-                              </DialogHeader>
-                              <div className="grid gap-4 md:grid-cols-2">
-                                <div>
-                                  <h3 className="mb-2 text-sm font-bold">قبل التعديل</h3>
-                                  <pre className="max-h-96 overflow-auto rounded-lg bg-muted p-3 text-left text-xs" dir="ltr">
-                                    {formatLogJson(log.old_data || {})}
-                                  </pre>
+                {logs.map((log) => {
+                  const oldData = log.old_data as LogDataPayload | null;
+                  const newData = log.new_data as LogDataPayload | null;
+                  
+                  return (
+                    <TableRow key={log.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-bold text-sm">{log.admin_name || 'نظام تلقائي'}</p>
+                          {log.admin_email && <p className="text-xs text-muted-foreground">{log.admin_email}</p>}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-semibold text-sm">
+                        {getFriendlyActionDescription(log)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-blue-50 text-accent border-blue-100">
+                          {getFriendlyEntityName(log.entity_type)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">
+                        <div className="flex items-center gap-2">
+                          <span>{log.entity_id ? `${log.entity_id.substring(0, 8)}...` : '-'}</span>
+                          {(log.old_data || log.new_data) && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  <Eye className="ml-1 h-3.5 w-3.5" />
+                                  التفاصيل
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+                                <DialogHeader>
+                                  <DialogTitle className="text-right text-lg font-bold">تفاصيل سجل النشاط</DialogTitle>
+                                </DialogHeader>
+                                
+                                <div className="space-y-6 py-4 text-right" dir="rtl">
+                                  {/* Summary Grid */}
+                                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm border-b pb-4">
+                                    <div>
+                                      <span className="text-muted-foreground block mb-1 text-xs">المشرف المسؤول:</span>
+                                      <span className="font-bold text-foreground">{log.admin_name || 'نظام تلقائي'}</span>
+                                      {log.admin_email && <span className="text-[10px] text-muted-foreground block font-mono">{log.admin_email}</span>}
+                                    </div>
+                                    <div>
+                                      <span className="text-muted-foreground block mb-1 text-xs">نوع العملية:</span>
+                                      <span className="font-semibold text-accent">{getActionTypeName(log.action_type)}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted-foreground block mb-1 text-xs">تاريخ العملية:</span>
+                                      <span className="text-foreground">{new Date(log.created_at).toLocaleString('ar-EG')}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted-foreground block mb-1 text-xs">نوع العنصر:</span>
+                                      <span className="text-foreground">{getFriendlyEntityName(log.entity_type)}</span>
+                                    </div>
+                                  </div>
+
+                                  {/* Order details card if available */}
+                                  {(log.order_number || oldData?.order_number || newData?.order_number) && (
+                                    <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl space-y-3">
+                                      <h4 className="font-bold text-sm text-blue-900">بيانات الطلب المرتبط:</h4>
+                                      <div className="grid grid-cols-2 gap-4 text-xs text-blue-900/80">
+                                        <div>
+                                          <span className="text-muted-foreground">رقم الطلب: </span>
+                                          <span className="font-bold text-foreground">{log.order_number || oldData?.order_number || newData?.order_number}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-muted-foreground">العميل: </span>
+                                          <span className="font-semibold text-foreground">{log.customer_name || oldData?.customer_name || newData?.customer_name}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-muted-foreground">البريد الإلكتروني للعميل: </span>
+                                          <span className="font-mono text-foreground">{log.customer_email || oldData?.customer_email || newData?.customer_email}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-muted-foreground">إجمالي المبلغ: </span>
+                                          <span className="font-bold text-foreground">{log.order_total || oldData?.total || newData?.total || '-'} ج.م</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Raw changes */}
+                                  <div className="grid gap-4 md:grid-cols-2 pt-2">
+                                    <div>
+                                      <h3 className="mb-2 text-sm font-bold text-muted-foreground">البيانات السابقة (قبل التعديل)</h3>
+                                      <pre className="max-h-60 overflow-auto rounded-lg bg-muted p-3 text-left text-xs font-mono" dir="ltr">
+                                        {formatLogJson(log.old_data || {})}
+                                      </pre>
+                                    </div>
+                                    <div>
+                                      <h3 className="mb-2 text-sm font-bold text-muted-foreground">البيانات الجديدة (بعد التعديل)</h3>
+                                      <pre className="max-h-60 overflow-auto rounded-lg bg-muted p-3 text-left text-xs font-mono" dir="ltr">
+                                        {formatLogJson(log.new_data || {})}
+                                      </pre>
+                                    </div>
+                                  </div>
                                 </div>
-                                <div>
-                                  <h3 className="mb-2 text-sm font-bold">بعد التعديل</h3>
-                                  <pre className="max-h-96 overflow-auto rounded-lg bg-muted p-3 text-left text-xs" dir="ltr">
-                                    {formatLogJson(log.new_data || {})}
-                                  </pre>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {new Date(log.created_at).toLocaleString('ar-EG')}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {new Date(log.created_at).toLocaleString('ar-EG')}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           ) : (
