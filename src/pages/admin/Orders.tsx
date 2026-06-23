@@ -27,6 +27,8 @@ export default function AdminOrders() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isRejectOpen, setIsRejectOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<any>(null);
 
   // Reject States
   const [rejectionReason, setRejectionReason] = useState('');
@@ -151,7 +153,8 @@ export default function AdminOrders() {
       queryClient.invalidateQueries({ queryKey: ['admin_orders'] });
       queryClient.invalidateQueries({ queryKey: ['admin_stats'] });
       toast.success('تم حذف الطلب بنجاح');
-      setIsDetailsOpen(false);
+      setIsDeleteConfirmOpen(false);
+      setOrderToDelete(null);
     },
     onError: (err: any) => {
       toast.error(err.message || 'خطأ أثناء حذف الطلب');
@@ -480,18 +483,13 @@ export default function AdminOrders() {
                             size="sm" 
                             className="text-destructive hover:text-destructive hover:bg-red-50 h-8 w-8 p-0"
                             onClick={() => {
-                              if (window.confirm(`هل أنت متأكد من رغبتك في حذف الطلب #${order.order_number} نهائياً؟`)) {
-                                deleteMutation.mutate(order.id);
-                              }
+                              setOrderToDelete(order);
+                              setIsDeleteConfirmOpen(true);
                             }}
                             disabled={deleteMutation.isPending}
                             title="حذف الطلب"
                           >
-                            {deleteMutation.isPending && selectedOrder?.id === order.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
-                            )}
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         )}
                       </div>
@@ -508,6 +506,48 @@ export default function AdminOrders() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+        <DialogContent className="max-w-md text-right" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-right text-lg font-bold">تأكيد حذف الطلب</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4 text-right">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              هل أنت متأكد من رغبتك في حذف الطلب <span className="font-bold text-foreground">#{orderToDelete?.order_number}</span> للعميل <span className="font-semibold text-foreground">{orderToDelete?.customer_name}</span> نهائياً؟
+            </p>
+            <p className="text-xs text-destructive bg-red-50 p-3 rounded-lg border border-red-100 font-semibold">
+              تنبيه: هذا الإجراء سيقوم بحذف جميع البيانات المتعلقة بالطلب بما في ذلك إيصالات الدفع وتفاصيل التسليم ولا يمكن التراجع عنه.
+            </p>
+            <div className="flex gap-3 pt-2">
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={() => {
+                  if (orderToDelete) {
+                    deleteMutation.mutate(orderToDelete.id);
+                  }
+                }}
+                disabled={deleteMutation.isPending}
+              >
+                {deleteMutation.isPending ? 'جاري الحذف...' : 'نعم، احذف الطلب'}
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setIsDeleteConfirmOpen(false);
+                  setOrderToDelete(null);
+                }}
+                disabled={deleteMutation.isPending}
+              >
+                إلغاء
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
