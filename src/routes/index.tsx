@@ -13,6 +13,7 @@ import FaqPage from '@/pages/public/Faq';
 import ContactPage from '@/pages/public/Contact';
 import TermsPage from '@/pages/public/Terms';
 import PrivacyPage from '@/pages/public/Privacy';
+import ErrorPage from '@/pages/public/Error';
 
 // Admin Pages
 import { AdminLayout } from '@/components/layout/AdminLayout';
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <PublicLayout />,
+    errorElement: <ErrorPage />,
     children: [
       { index: true, element: <HomePage /> },
       { path: 'services', element: <ServicesPage /> },
@@ -73,6 +75,7 @@ export const router = createBrowserRouter([
         <AdminLayout />
       </ProtectedRoute>
     ),
+    errorElement: <ErrorPage />,
     children: [
       { index: true, element: <AdminOverview /> },
       { path: 'orders', element: <AdminOrders /> },
