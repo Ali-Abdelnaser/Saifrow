@@ -63,6 +63,7 @@ export const router = createBrowserRouter([
       { path: 'contact', element: <ContactPage /> },
       { path: 'terms', element: <TermsPage /> },
       { path: 'privacy', element: <PrivacyPage /> },
+      { path: '*', element: <HomePage /> },
     ],
   },
   {
