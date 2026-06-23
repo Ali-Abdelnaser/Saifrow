@@ -39,6 +39,77 @@ function formatLogJson(value: unknown) {
   return JSON.stringify(redactSensitiveLogData(value), null, 2);
 }
 
+function getActionTypeName(action: string) {
+  switch (action) {
+    case 'approve_payment_and_complete_order':
+      return 'قبول دفع وتوصيل';
+    case 'reject_payment_proof':
+      return 'رفض إثبات دفع';
+    case 'delete_order':
+      return 'حذف نهائي لـ';
+    case 'INSERT':
+      return 'إضافة';
+    case 'UPDATE':
+      return 'تعديل';
+    case 'DELETE':
+      return 'حذف';
+    default:
+      return action;
+  }
+}
+
+function getFriendlyEntityName(entity: string) {
+  switch (entity) {
+    case 'orders':
+      return 'الطلبات';
+    case 'services':
+      return 'الخدمات';
+    case 'categories':
+      return 'التصنيفات';
+    case 'coupons':
+      return 'الكوبونات';
+    case 'faqs':
+      return 'الأسئلة الشائعة';
+    case 'site_settings':
+      return 'إعدادات الموقع';
+    case 'payment_methods':
+      return 'طرق الدفع';
+    case 'profiles':
+      return 'الملفات الشخصية';
+    default:
+      return entity;
+  }
+}
+
+function getFriendlyActionDescription(log: any) {
+  let details = '';
+  
+  if (log.entity_type === 'orders') {
+    const orderNum = log.order_number || log.old_data?.order_number || log.new_data?.order_number;
+    const customerName = log.customer_name || log.old_data?.customer_name || log.new_data?.customer_name;
+    details = orderNum 
+      ? `الطلب #${orderNum} ${customerName ? `(للعميل: ${customerName})` : ''}` 
+      : `طلب (معرف: ${log.entity_id})`;
+  } else if (log.entity_type === 'services') {
+    const serviceName = log.new_data?.name || log.old_data?.name;
+    details = serviceName ? `الخدمة "${serviceName}"` : `خدمة (معرف: ${log.entity_id})`;
+  } else if (log.entity_type === 'categories') {
+    const catName = log.new_data?.name || log.old_data?.name;
+    details = catName ? `التصنيف "${catName}"` : `التصنيف (معرف: ${log.entity_id})`;
+  } else if (log.entity_type === 'coupons') {
+    const couponCode = log.new_data?.code || log.old_data?.code;
+    details = couponCode ? `الكوبون "${couponCode}"` : `كوبون (معرف: ${log.entity_id})`;
+  } else if (log.entity_type === 'faqs') {
+    const faqQ = log.new_data?.question || log.old_data?.question;
+    details = faqQ ? `السؤال الشائع "${faqQ.substring(0, 30)}..."` : `سؤال شائع (معرف: ${log.entity_id})`;
+  } else {
+    details = `${log.entity_type} (معرف: ${log.entity_id})`;
+  }
+
+  const actionName = getActionTypeName(log.action_type);
+  return `${actionName} ${details}`;
+}
+
 export default function AdminLogs() {
   const { profile } = useAuth();
 
@@ -47,7 +118,7 @@ export default function AdminLogs() {
     queryKey: ['admin_activity_logs'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('admin_activity_logs')
+        .from('enriched_admin_activity_logs')
         .select('*')
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -92,20 +163,29 @@ export default function AdminLogs() {
               <TableBody>
                 {logs.map((log) => (
                   <TableRow key={log.id}>
-                    <TableCell className="font-bold">{log.admin_email || 'نظام تلقائي'}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{log.action_type}</Badge>
+                      <div>
+                        <p className="font-bold text-sm">{log.admin_name || 'نظام تلقائي'}</p>
+                        {log.admin_email && <p className="text-xs text-muted-foreground">{log.admin_email}</p>}
+                      </div>
                     </TableCell>
-                    <TableCell>{log.entity_type}</TableCell>
+                    <TableCell className="font-semibold text-sm">
+                      {getFriendlyActionDescription(log)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="bg-blue-50 text-accent border-blue-100">
+                        {getFriendlyEntityName(log.entity_type)}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="font-mono text-xs">
                       <div className="flex items-center gap-2">
-                        <span>{log.entity_id || '-'}</span>
+                        <span>{log.entity_id ? `${log.entity_id.substring(0, 8)}...` : '-'}</span>
                         {(log.old_data || log.new_data) && (
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button variant="outline" size="sm">
                                 <Eye className="ml-1 h-3.5 w-3.5" />
-                                عرض
+                                التفاصيل
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-3xl">

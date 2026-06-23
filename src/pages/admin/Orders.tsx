@@ -139,6 +139,23 @@ export default function AdminOrders() {
   // Delete Order Mutation
   const deleteMutation = useMutation({
     mutationFn: async (orderId: string) => {
+      // 0. Log the deletion to admin_activity_logs first while the order still exists
+      await supabase.from('admin_activity_logs').insert({
+        admin_id: profile?.id || null,
+        action_type: 'delete_order',
+        entity_type: 'orders',
+        entity_id: orderId,
+        old_data: {
+          order_number: orderToDelete?.order_number,
+          customer_name: orderToDelete?.customer_name,
+          customer_email: orderToDelete?.customer_email,
+          total: orderToDelete?.total,
+          service_name: orderToDelete?.services?.name || orderToDelete?.service_name_snapshot,
+          plan_name: orderToDelete?.service_plans?.name || orderToDelete?.plan_name_snapshot,
+        },
+        new_data: null
+      });
+
       // 1. Delete associated tables first to avoid foreign key errors
       await supabase.from('payment_proofs').delete().eq('order_id', orderId);
       await supabase.from('delivery_details').delete().eq('order_id', orderId);

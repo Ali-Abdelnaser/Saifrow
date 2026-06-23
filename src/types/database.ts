@@ -389,6 +389,22 @@ export interface Database {
         rejected_payments: number;
         total_revenue: number;
       }>;
+      enriched_admin_activity_logs: ViewDefinition<{
+        id: string;
+        admin_id: string | null;
+        admin_email: string | null;
+        admin_name: string | null;
+        action_type: string;
+        entity_type: string;
+        entity_id: string | null;
+        old_data: Json | null;
+        new_data: Json | null;
+        created_at: string;
+        order_number: string | null;
+        customer_name: string | null;
+        customer_email: string | null;
+        order_total: string | null;
+      }>;
     };
     Functions: {
       create_order: {
