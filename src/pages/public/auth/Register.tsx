@@ -100,7 +100,7 @@ export default function RegisterPage() {
             <img 
               src={settings?.logo_url || '/favicon.png'} 
               alt={siteName} 
-              className="h-16 w-16 object-contain"
+              className="h-24 w-24 object-contain"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
