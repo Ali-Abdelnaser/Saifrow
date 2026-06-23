@@ -16,6 +16,7 @@ export function PublicFooter() {
         contact_email: 'saifrowstore@gmail.com',
         contact_phone: '',
         whatsapp_number: '',
+        logo_url: '',
       };
 
       data?.forEach((row: any) => {
@@ -26,6 +27,8 @@ export function PublicFooter() {
           flatSettings.contact_email = row.value?.email || flatSettings.contact_email;
           flatSettings.contact_phone = row.value?.phone || '';
           flatSettings.whatsapp_number = row.value?.whatsapp || '';
+        } else if (row.key === 'branding') {
+          flatSettings.logo_url = row.value?.logo_url || '';
         }
       });
 
@@ -45,9 +48,17 @@ export function PublicFooter() {
           <div className="space-y-4">
             <Link 
               to="/" 
-              className="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-accent to-blue-600 bg-clip-text text-transparent hover:opacity-90 transition-opacity block"
+              className="hover:opacity-90 transition-opacity flex items-center gap-2.5"
             >
-              {siteName}
+              <img 
+                src={settings?.logo_url || '/favicon.png'} 
+                alt={siteName} 
+                className="h-10 w-10 object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+              <span className="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-accent to-blue-600 bg-clip-text text-transparent">{siteName}</span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-sm">
               {description}

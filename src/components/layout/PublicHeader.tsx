@@ -62,12 +62,16 @@ export function PublicHeader() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container relative flex h-16 items-center justify-between">
         <div className="flex items-center">
-          <Link to="/" className="flex items-center space-x-2 rtl:space-x-reverse">
-            {settings?.logo_url ? (
-              <img src={settings.logo_url} alt={siteName} className="h-8 object-contain" />
-            ) : (
-              <span className="font-bold inline-block text-xl">{siteName}</span>
-            )}
+          <Link to="/" className="flex items-center gap-2">
+            <img 
+              src={settings?.logo_url || '/favicon.png'} 
+              alt={siteName} 
+              className="h-8 w-8 object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+            <span className="font-bold inline-block text-xl">{siteName}</span>
           </Link>
         </div>
 
