@@ -14,6 +14,7 @@ import ContactPage from '@/pages/public/Contact';
 import TermsPage from '@/pages/public/Terms';
 import PrivacyPage from '@/pages/public/Privacy';
 import ErrorPage from '@/pages/public/Error';
+import { supabase } from '@/lib/supabase';
 
 // Admin Pages
 import { AdminLayout } from '@/components/layout/AdminLayout';
@@ -65,6 +66,22 @@ export const router = createBrowserRouter([
       { path: 'contact', element: <ContactPage /> },
       { path: 'terms', element: <TermsPage /> },
       { path: 'privacy', element: <PrivacyPage /> },
+      {
+        path: ':slug',
+        loader: async ({ params }) => {
+          const { data, error } = await supabase
+            .from('services')
+            .select('id')
+            .eq('slug', params.slug!)
+            .maybeSingle();
+          
+          if (error || !data) {
+            throw new Response("Not Found", { status: 404, statusText: "Not Found" });
+          }
+          return null;
+        },
+        element: <ServiceDetailsPage />
+      },
       { 
         path: '*', 
         loader: () => {
