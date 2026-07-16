@@ -65,7 +65,13 @@ export const router = createBrowserRouter([
       { path: 'contact', element: <ContactPage /> },
       { path: 'terms', element: <TermsPage /> },
       { path: 'privacy', element: <PrivacyPage /> },
-      { path: '*', element: <HomePage /> },
+      { 
+        path: '*', 
+        loader: () => {
+          throw new Response("Not Found", { status: 404, statusText: "Not Found" });
+        },
+        element: <div /> 
+      },
     ],
   },
   {
@@ -91,6 +97,13 @@ export const router = createBrowserRouter([
       { path: 'team', element: <AdminTeam /> },
       { path: 'logs', element: <AdminLogs /> },
       { path: 'contacts', element: <AdminContacts /> },
+      { 
+        path: '*', 
+        loader: () => {
+          throw new Response("Not Found", { status: 404, statusText: "Not Found" });
+        },
+        element: <div /> 
+      },
     ],
   },
 ]);
