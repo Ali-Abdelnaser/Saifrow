@@ -196,9 +196,22 @@ export function PublicFooter() {
 
         {/* Divider & Payment Methods */}
         <div className="border-t pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-sm text-muted-foreground text-center md:text-right order-2 md:order-1">
-            © {new Date().getFullYear()} {siteName}. جميع الحقوق محفوظة لمتجر {siteName}.
-          </p>
+          <div className="text-sm text-muted-foreground text-center md:text-right order-2 md:order-1 space-y-1">
+            <p>
+              © {new Date().getFullYear()} {siteName}. جميع الحقوق محفوظة لمتجر {siteName}.
+            </p>
+            <p className="text-xs text-muted-foreground/80">
+              Developed by{' '}
+              <a 
+                href="https://portfolio-lp91a6vl1-ali-abdelnasers-projects.vercel.app/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-accent font-medium underline underline-offset-2 transition-colors"
+              >
+                Ali Abdelnaser
+              </a>
+            </p>
+          </div>
 
           <div className="flex flex-wrap items-center justify-center gap-3 order-1 md:order-2">
             <span className="text-xs text-muted-foreground ml-2">طرق الدفع المدعومة:</span>
