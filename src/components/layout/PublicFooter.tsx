@@ -41,8 +41,8 @@ export function PublicFooter() {
   const email = settings?.contact_email || 'saifrowstore@gmail.com';
 
   return (
-    <footer className="border-t bg-gradient-to-b from-gray-50/50 to-gray-100/50 pt-16 pb-8 text-foreground/90">
-      <div className="container max-w-7xl mx-auto px-4 md:px-8">
+    <footer className="border-t bg-gradient-to-b from-gray-50/50 to-gray-100/50 pt-16 pb-0 text-foreground/90 overflow-hidden">
+      <div className="container max-w-7xl mx-auto px-4 md:px-8 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 mb-12">
           {/* Brand Column */}
           <div className="space-y-4">
@@ -196,22 +196,9 @@ export function PublicFooter() {
 
         {/* Divider & Payment Methods */}
         <div className="border-t pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="text-sm text-muted-foreground text-center md:text-right order-2 md:order-1 space-y-1">
-            <p>
-              © {new Date().getFullYear()} {siteName}. جميع الحقوق محفوظة لمتجر {siteName}.
-            </p>
-            <p className="text-xs text-muted-foreground/80">
-              Developed by{' '}
-              <a 
-                href="https://portfolio-lp91a6vl1-ali-abdelnasers-projects.vercel.app/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:text-accent font-medium underline underline-offset-2 transition-colors"
-              >
-                Ali Abdelnaser
-              </a>
-            </p>
-          </div>
+          <p className="text-sm text-muted-foreground text-center md:text-right order-2 md:order-1">
+            © {new Date().getFullYear()} {siteName}. جميع الحقوق محفوظة لمتجر {siteName}.
+          </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3 order-1 md:order-2">
             <span className="text-xs text-muted-foreground ml-2">طرق الدفع المدعومة:</span>
@@ -237,6 +224,21 @@ export function PublicFooter() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Developer attribution bottom bar */}
+      <div className="w-full bg-gray-100/80 border-t py-4 text-center">
+        <p className="text-sm text-muted-foreground">
+          Developed by{' '}
+          <a 
+            href="https://portfolio-lp91a6vl1-ali-abdelnasers-projects.vercel.app/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="font-bold text-black dark:text-white hover:text-accent transition-colors no-underline"
+          >
+            Ali Abdelnaser
+          </a>
+        </p>
       </div>
     </footer>
   );
